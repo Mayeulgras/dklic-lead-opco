@@ -32,6 +32,12 @@ function toCompany(result: RawResult): Company | null {
     ville: result.siege?.libelle_commune ?? "",
     codeNaf: result.siege?.activite_principale ?? "",
     effectif: result.tranche_effectif_salarie ?? null,
+    // L'IDCC peut être porté par l'entreprise ou seulement par son siège :
+    // on prend l'union, la résolution écartera ensuite les valeurs neutres.
+    idcc: [
+      ...(result.complements?.liste_idcc ?? []),
+      ...(result.siege?.liste_idcc ?? []),
+    ].filter((v, i, a) => a.indexOf(v) === i),
   }
 
   // Un établissement sans siège exploitable est écarté silencieusement : c'est

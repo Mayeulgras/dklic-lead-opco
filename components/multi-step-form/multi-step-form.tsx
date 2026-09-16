@@ -12,8 +12,8 @@ import {
   StepperTitle,
   StepperTrigger,
 } from "@/components/ui/stepper"
-import type { Company, ContactInfo, Formation, OpcoResult } from "@/lib/schemas/lead-form"
-import { getLeadResult } from "@/app/actions/lead"
+import type { Company, ContactInfo } from "@/lib/schemas/lead-form"
+import { getLeadResult, type DonneesResultat } from "@/app/actions/lead"
 import { StepCompanySearch } from "./step-company-search"
 import { StepCompanyConfirm } from "./step-company-confirm"
 import { StepContact } from "./step-contact"
@@ -27,9 +27,7 @@ export function MultiStepForm() {
   const [contact, setContact] = useState<ContactInfo | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<{ opco: OpcoResult; formations: Formation[] } | null>(
-    null
-  )
+  const [result, setResult] = useState<DonneesResultat | null>(null)
 
   // L'étape 4 n'est atteignable qu'une fois le résultat obtenu : si l'appel
   // échoue, l'utilisateur reste sur l'étape 3 avec le message d'erreur.
@@ -55,6 +53,7 @@ export function MultiStepForm() {
       }
 
       setResult({ opco: leadResult.opco, formations: leadResult.formations })
+
       setActiveStep(4)
     } catch {
       setError("Une erreur est survenue, merci de réessayer dans un instant")
@@ -125,8 +124,9 @@ export function MultiStepForm() {
             />
           )}
 
-          {activeStep === 4 && result && (
+          {activeStep === 4 && result && company && (
             <StepResult
+              company={company}
               opco={result.opco}
               formations={result.formations}
               onCta={handleCta}

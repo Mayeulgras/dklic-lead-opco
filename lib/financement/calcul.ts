@@ -18,10 +18,12 @@ import {
   type Bareme,
 } from "./baremes"
 import {
+  SEUIL_FONDS_MUTUALISES,
   eligibleFondsMutualises,
   parseTrancheEffectif,
   type TrancheEffectif,
 } from "./effectif"
+import type { OpcoId } from "./opcos"
 
 export interface ParametresSimulation {
   /** 1, 2 ou 3 jours. */
@@ -91,6 +93,26 @@ export function analyserEntreprise(codeTrancheEffectif: string | null): Contexte
 }
 
 /**
+ * Même analyse, à partir d'un effectif saisi par l'utilisateur.
+ *
+ * Indispensable : l'API renvoie très souvent `NN` (effectif inconnu), et c'est
+ * le nombre de salariés que le client veut au centre de l'outil. Autant le
+ * demander que le deviner — et cela enrichit le lead au passage.
+ */
+export function contexteDepuisEffectif(effectif: number): ContexteEntreprise {
+  const salaries = Math.max(0, Math.round(effectif))
+  const apprenantsMax = Math.max(1, Math.min(APPRENANTS_MAX, salaries || 1))
+
+  return {
+    tranche: null,
+    eligibleFondsMutualises: salaries < SEUIL_FONDS_MUTUALISES,
+    apprenantsMax,
+    apprenantsMin: Math.min(APPRENANTS_MIN, apprenantsMax),
+    effectifInconnu: false,
+  }
+}
+
+/**
  * Applique la formule du client — `forfait × 7 h × jours × apprenants` — puis
  * **écrête sur les plafonds**. L'écrêtage n'est pas cosmétique : la grille du
  * client culmine à 7 560 €, au-dessus du plafond annuel de plusieurs OPCO réels.
@@ -98,7 +120,7 @@ export function analyserEntreprise(codeTrancheEffectif: string | null): Contexte
  */
 export function estimer(
   params: ParametresSimulation,
-  opco: string | null
+  opco: OpcoId | null
 ): Estimation {
   const bareme = baremePourOpco(opco)
   const jours = Math.max(1, Math.round(params.jours))
@@ -142,7 +164,7 @@ export function estimer(
 export function fourchette(
   contexte: ContexteEntreprise,
   jours: number,
-  opco: string | null
+  opco: OpcoId | null
 ): { min: number; max: number } {
   return {
     min: estimer({ jours, apprenants: contexte.apprenantsMin }, opco).montant,

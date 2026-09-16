@@ -44,11 +44,56 @@ Dernière mise à jour : 2026-09-03
 
 ---
 
+## 1 bis. Texte explicatif joint au mail (verbatim)
+
+Le responsable s'appuyait sur cette explication, transmise avec sa demande. Elle
+est reproduite ici parce qu'elle est la source des deux erreurs corrigées au §2.
+**Ne pas la traiter comme une référence : le §2 fait foi.**
+
+> il n'existe pas de "montant dû" fixe et unique que l'entreprise pourrait
+> interroger comme un solde de compte (contrairement au CPF, qui est un compte
+> individuel avec un montant crédité). Le financement OPCO fonctionne par
+> remboursement/prise en charge action par action.
+>
+> **1. La contribution versée par l'entreprise** (ce n'est pas ce qui détermine
+> son droit) — Les entreprises versent une Contribution à la Formation
+> Professionnelle (CFP) via l'URSSAF, calculée sur la masse salariale brute :
+> 0,55% pour les entreprises de moins de 11 salariés, 1% au-delà. Cette
+> contribution alimente un pot mutualisé par branche, elle n'ouvre pas un
+> « droit » individuel proportionnel à ce que l'entreprise a versé.
+>
+> **2. Le calcul du montant de prise en charge pour une formation donnée** —
+> Quand une entreprise demande "combien vais-je toucher pour cette formation",
+> l'OPCO calcule au cas par cas :
+> - Plan de développement des compétences : un forfait horaire (NPEC) fixé par la
+>   branche/l'OPCO, généralement entre 15 € et 40 € par heure et par stagiaire,
+>   multiplié par le nombre d'heures de formation, avec un plafond annuel par
+>   salarié.
+> - Contrats d'apprentissage : calcul au prorata journalier : montant versé =
+>   (NPEC annuel / 365) × nombre de jours du contrat. France compétences publie le
+>   NPEC de référence, et les branches professionnelles peuvent le moduler de ±20%
+> - Frais annexes (transport, hébergement, repas) : forfaits séparés, variables
+>   selon l'OPCO.
+>
+> **3. Les variables qui font varier le résultat** — L'OPCO de rattachement
+> (déterminé par la convention collective/code IDCC) ; La taille de l'entreprise :
+> les TPE-PME de moins de 50 salariés bénéficient d'une prise en charge quasi
+> intégrale grâce au cofinancement de France Compétences ; Le type de dispositif
+> mobilisé (plan de compétences, Pro-A, apprentissage, FNE-Formation) ; Le montant
+> réel des contributions déjà versées peut aussi jouer un rôle dans certains OPCO.
+>
+> **Implication pour votre outil** : si vous voulez afficher un "montant auquel
+> l'entreprise a droit", il faudra probablement demander à l'utilisateur : son
+> OPCO/branche, sa taille, le type de formation visée et sa durée — le résultat
+> sera une estimation du remboursement possible pour une action de formation
+> précise, pas un solde disponible générique.
+
+---
+
 ## 2. Vérifications sur sources officielles
 
-Un texte explicatif sur le fonctionnement des OPCO avait été transmis avec la
-demande. Il a été recoupé le 2026-09-03. Résultat : le principe général est bon,
-**deux affirmations sont fausses**.
+Le texte du §1 bis a été recoupé sur sources officielles le 2026-09-03.
+Résultat : le principe général est bon, **deux affirmations sont fausses**.
 
 ### Confirmé
 
@@ -144,6 +189,32 @@ L'effectif agit donc sur trois leviers réels :
 1. Il **plafonne le groupe** (une entreprise de 6 salariés ne forme pas 12 personnes)
 2. Il **conditionne l'accès aux fonds mutualisés** (seuil de 50 salariés)
 3. Il **détermine le taux de cofinancement** (~38 % sous 50 salariés, ~67 % au-dessus)
+
+### Identification de l'OPCO : CFADock abandonné
+
+La spec §7.2 prévoyait l'API CFADock. **Elle n'est plus utilisable** : le portail
+est passé derrière une clé développeur réservée aux CFA, et tous les chemins
+`/api/*` renvoient désormais la coquille du site.
+
+Solution retenue, meilleure que la prévue : **l'API Recherche d'entreprises que
+l'on interroge déjà renvoie l'IDCC** dans `complements.liste_idcc` et
+`siege.liste_idcc`. La correspondance IDCC → OPCO est dérivée de la table
+SIRET-OPCO officielle de France Compétences (data.gouv.fr, Licence Ouverte 2.0,
+108 Mo) : 3,6 millions d'établissements agrégés donnent **948 IDCC** couvrant les
+11 OPCO, dans un fichier de quelques kilo-octets.
+
+Bénéfices : aucun appel réseau supplémentaire, aucune clé, aucun quota, et une
+table régénérable par `node scripts/generer-table-idcc.mjs` quand France
+Compétences publie une nouvelle version.
+
+Un IDCC dont l'OPCO majoritaire ne dépasse pas 60 % est écarté (5 cas) plutôt que
+tranché au hasard. Les valeurs d'échappement `9999` (hors convention), `9998`
+(non déterminée) et `0000` ne désignent aucune branche et sont ignorées.
+
+**Limite connue** : l'IDCC est souvent absent — Danone renvoie `9999`. Dans ce
+cas l'OPCO reste non identifié et le barème moyen s'applique, ce que l'interface
+énonce explicitement. Un repli NAF → OPCO reste possible mais demanderait une
+autre source.
 
 ### Le +10 %
 

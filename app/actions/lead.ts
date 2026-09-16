@@ -4,12 +4,24 @@ import {
   companySchema,
   type Company,
   type Formation,
-  type OpcoResult,
 } from "@/lib/schemas/lead-form"
-import { getMockResult } from "@/lib/mock-opco-result"
+import { FORMATIONS_DEMO } from "@/lib/formations-demo"
+import { resoudreOpco } from "@/lib/financement/opco-resolution"
+import type { OpcoId } from "@/lib/financement/opcos"
+
+export interface DonneesResultat {
+  /**
+   * OPCO de rattachement, résolu depuis l'IDCC de l'entreprise. `null` quand
+   * aucune convention exploitable n'est déclarée — cas fréquent : le simulateur
+   * retombe alors sur le barème moyen, et l'interface le dit.
+   * Ne jamais inventer d'OPCO ici : il détermine le forfait horaire.
+   */
+  opco: OpcoId | null
+  formations: Formation[]
+}
 
 export type LeadResult =
-  | { ok: true; opco: OpcoResult; formations: Formation[] }
+  | ({ ok: true } & DonneesResultat)
   | { ok: false; error: string }
 
 export async function getLeadResult(company: Company): Promise<LeadResult> {
@@ -24,9 +36,12 @@ export async function getLeadResult(company: Company): Promise<LeadResult> {
     }
   }
 
-  // TODO: remplacer par l'appel à la route d'orchestration backend qui agrège
-  // OPCO/budget (API CFADock) + catalogue Odoo, et crée le lead CRM.
-  const { opco, formations } = getMockResult(parsed.data)
-
-  return { ok: true, opco, formations }
+  // TODO: créer le lead dans le CRM Odoo avec les données collectées.
+  // Le montant, lui, est calculé côté client par `lib/financement/` : il réagit
+  // aux curseurs du simulateur sans aller-retour serveur.
+  return {
+    ok: true,
+    opco: resoudreOpco(parsed.data.idcc),
+    formations: FORMATIONS_DEMO,
+  }
 }

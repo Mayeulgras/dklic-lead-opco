@@ -9,6 +9,8 @@ export const companySchema = z.object({
   ville: z.string().max(150),
   codeNaf: z.string().max(10),
   effectif: z.string().nullable(),
+  /** Conventions collectives déclarées : c'est ce qui détermine l'OPCO. */
+  idcc: z.array(z.string().max(10)).max(20).default([]),
 })
 
 export const contactSchema = z.object({
@@ -37,6 +39,9 @@ export const rechercheEntreprisesResponseSchema = z.object({
         siren: z.string(),
         nom_complet: z.string(),
         tranche_effectif_salarie: z.string().nullish(),
+        complements: z
+          .object({ liste_idcc: z.array(z.string()).nullish() })
+          .nullish(),
         siege: z
           .object({
             siret: z.string(),
@@ -44,6 +49,7 @@ export const rechercheEntreprisesResponseSchema = z.object({
             code_postal: z.string().nullish(),
             libelle_commune: z.string().nullish(),
             activite_principale: z.string().nullish(),
+            liste_idcc: z.array(z.string()).nullish(),
           })
           .nullish(),
       })
@@ -60,12 +66,6 @@ export const searchResponseSchema = z.object({
 export type Company = z.infer<typeof companySchema>
 export type ContactInfo = z.infer<typeof contactSchema>
 export type SearchResponse = z.infer<typeof searchResponseSchema>
-
-export interface OpcoResult {
-  nom: string
-  budgetMin: number
-  budgetMax: number
-}
 
 export interface Formation {
   id: string

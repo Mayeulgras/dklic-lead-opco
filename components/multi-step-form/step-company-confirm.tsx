@@ -38,68 +38,70 @@ export function StepCompanyConfirm({
   }
 
   return (
-    <div className="space-y-6">
-      <AnimatedField index={0}>
-        <div className="space-y-1.5">
-          <h2 className="text-2xl font-semibold">On vérifie ensemble ?</h2>
-          <p className="text-muted-foreground">
-            Corrigez les informations si besoin avant de continuer.
-          </p>
-        </div>
-      </AnimatedField>
-
-      <AnimatedField index={1}>
-        <Card>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="raison-sociale">Raison sociale</Label>
-              <Input
-                id="raison-sociale"
-                value={company.nom}
-                onChange={(e) => onChange({ ...company, nom: e.target.value })}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="adresse">Adresse</Label>
-              <Input
-                id="adresse"
-                value={company.adresse}
-                onChange={(e) => onChange({ ...company, adresse: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="siret">SIRET</Label>
-                <Input id="siret" value={company.siret} disabled />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="siren">SIREN</Label>
-                <Input id="siren" value={company.siren} disabled />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </AnimatedField>
-
-      {error && (
-        <AnimatedField index={2}>
-          <Alert variant="destructive">
-            <AlertTitle>Erreur</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+    <Card className="bg-white">
+      <CardContent className="space-y-6">
+        <AnimatedField index={0}>
+          <div className="space-y-1.5">
+            <h2 className="text-heading font-semibold">On vérifie ensemble ?</h2>
+            <p className="text-base text-muted-foreground">
+              Corrigez les informations si besoin avant de continuer.
+            </p>
+          </div>
         </AnimatedField>
-      )}
 
-      <AnimatedField index={3}>
-        <div className="flex gap-2">
-          <Button type="button" onClick={handleConfirm}>
-            Confirmer
-          </Button>
-          <Button type="button" variant="ghost" onClick={onBack}>
-            Retour
-          </Button>
-        </div>
-      </AnimatedField>
-    </div>
+        <AnimatedField index={1}>
+          <Card>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="raison-sociale">Raison sociale</Label>
+                <Input
+                  id="raison-sociale"
+                  value={company.nom}
+                  onChange={(e) => onChange({ ...company, nom: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="adresse">Adresse</Label>
+                <Input
+                  id="adresse"
+                  value={company.adresse}
+                  onChange={(e) => onChange({ ...company, adresse: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="siret">SIRET</Label>
+                  <Input id="siret" value={company.siret} disabled />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="siren">SIREN</Label>
+                  <Input id="siren" value={company.siren} disabled />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </AnimatedField>
+
+        {error && (
+          <AnimatedField index={2}>
+            <Alert variant="destructive">
+              <AlertTitle>Erreur</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          </AnimatedField>
+        )}
+
+        <AnimatedField index={3}>
+          <div className="flex gap-2">
+            <Button type="button" onClick={handleConfirm}>
+              Confirmer
+            </Button>
+            <Button type="button" variant="ghost" onClick={onBack}>
+              Retour
+            </Button>
+          </div>
+        </AnimatedField>
+      </CardContent>
+    </Card>
   )
 }
