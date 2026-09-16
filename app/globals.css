@@ -96,10 +96,13 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  --text-sub: 11px;
-  --text-base: 13px;
-  --text-title: 16px;
-  --text-heading: 20px;
+  /* Échelle typographique. Les champs de saisie restent à 16 px quoi qu'il
+     arrive (voir components/elements/input.tsx) : en dessous, Safari iOS zoome
+     tout seul quand on tape. */
+  --text-sub: 12px;
+  --text-base: 15px;
+  --text-title: 17px;
+  --text-heading: 22px;
 }
 
 @layer base {

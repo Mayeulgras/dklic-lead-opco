@@ -66,8 +66,8 @@ export function ManualSiretEntry({
 
   return (
     <AnimatedField index={1}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1.5">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
           <Label htmlFor="siret">Numéro SIRET</Label>
           <Input
             id="siret"
@@ -85,7 +85,8 @@ export function ManualSiretEntry({
           </Alert>
         )}
 
-        <div className="flex gap-2">
+        {/* Mobile : bouton principal pleine largeur, au-dessus du retour. */}
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Button type="submit" disabled={loading}>
             {loading && <Loader2 className="size-4 animate-spin" />}
             Valider

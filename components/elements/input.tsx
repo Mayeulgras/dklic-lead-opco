@@ -7,7 +7,10 @@ export function Input({ className, type, ...props }: React.ComponentProps<"input
     <InputPrimitive
       type={type}
       className={cn(
-        "h-8 w-full min-w-0 rounded-md border border-border bg-white px-2.5 py-1 text-base",
+        // Toujours 16 px, indépendamment de l'échelle du site : en dessous,
+        // Safari iOS zoome tout seul à la saisie. `md:text-[16px]` annule le
+        // `md:text-sm` du composant de base, qui repasserait le champ en 14 px.
+        "h-10 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2 text-[16px] md:text-[16px]",
         className
       )}
       {...props}

@@ -4,7 +4,68 @@ Ce document fait foi pour le moteur de calcul (`lib/financement/`). Il consigne 
 demande du responsable de l'entreprise, ce qui a été vérifié sur sources
 officielles, et les décisions qui en découlent.
 
-Dernière mise à jour : 2026-09-03
+Dernière mise à jour : 2026-09-16
+
+---
+
+## 0. Refonte du 2026-09-16 — modèle des concurrents (fait foi)
+
+**Cette section remplace les décisions des §3 et suivants.** Le simulateur à
+curseurs (formule 30 €/h × 7 h × jours × apprenants) est abandonné. Il reste
+consultable au commit `e52e075`.
+
+### Pourquoi
+
+Six simulateurs concurrents ont été analysés : Matchers (cité par le
+responsable), Mon Budget OPCO, MonBudgetFormation, Mon Financement OPCO,
+L'Agence Sauvage, Alfie Formation. **Aucun ne propose de curseurs.** Tous
+affichent un seul chiffre : le budget annuel que l'OPCO accorde au plan de
+développement des compétences d'une entreprise de cette taille. Décision prise
+avec le développeur : on fait comme eux.
+
+### Le parcours (3 écrans)
+
+1. **Entreprise** — un champ, nom ou SIRET.
+2. **« Nous avons trouvé votre entreprise »** — on montre l'OPCO et la taille
+   détectés (taille corrigeable), puis on demande les coordonnées. Le contact est
+   demandé **avant le montant**, après avoir prouvé que l'outil sait (modèle
+   L'Agence Sauvage).
+3. **Budget** — le plafond annuel, l'OPCO, « ordre de grandeur indicatif », un
+   bouton « Être rappelé par un conseiller ».
+
+### Le calcul
+
+Une lecture de tableau : `PLAFONDS_ANNUELS[opco][taille]` dans
+`lib/financement/budget.ts`.
+
+| OPCO | Moins de 11 | 11 à 49 | Origine |
+|---|---|---|---|
+| Afdas | 1 100 € | 1 800 € | critères 2026 |
+| AKTO | 4 500 € | 5 600 € | règles de prise en charge 2026 |
+| OPCO Atlas | 8 000 € | 8 000 € | panorama OGMA 2026 |
+| Constructys | 3 000 € | 5 000 € | **estimé** (plafond publié par salarié seulement) |
+| OCAPIAT | 3 000 € | 5 000 € | **estimé** (plafond publié par stagiaire seulement) |
+| L'Opcommerce | 2 000 € | 4 000 € | IDCC 2216, commerce de détail |
+| OPCO 2i | 6 000 € | 6 000 € | moins de 50 salariés |
+| OPCO EP | 4 200 € | 4 200 € | branche coiffure, IDCC 2596 |
+| OPCO Mobilités | 1 500 € | 1 800 € | Services de l'automobile 2026 |
+| OPCO Santé | 2 500 € | 2 500 € | source secondaire |
+| Uniformation | 5 000 € | 5 000 € | moins de 50 salariés |
+
+- **50 salariés et plus** : pas de montant, « Sur étude » — le financement se
+  décide projet par projet.
+- **OPCO non identifié** (aucune convention déclarée, ~1 entreprise sur 3) :
+  médiane des onze OPCO, soit 3 000 € sous 11 salariés et 5 000 € de 11 à 49.
+
+OPCO EP était auparavant à 10 000 € : cette valeur venait d'une branche de niche
+(mandataires judiciaires). Remplacée par la branche coiffure, représentative des
+TPE de cet OPCO, qui pèse 24 % du trafic mesuré.
+
+### Ce qui est conservé
+
+L'identification de l'OPCO par IDCC (948 conventions, §2 et
+`scripts/generer-table-idcc.mjs`) — c'est exactement ce que les concurrents
+mettent en avant (« sans chercher votre IDCC »).
 
 ---
 
