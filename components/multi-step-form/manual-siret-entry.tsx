@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
-import { Loader2 } from "lucide-react"
 
-import { Input } from "@/components/elements/input"
-import { Label } from "@/components/ui/label"
+import { AnimatedField } from "@/components/elements/animated-field"
+import { ErrorAlert } from "@/components/elements/error-alert"
+import { FormActions } from "@/components/elements/form-actions"
+import { FormField } from "@/components/elements/form-field"
+import { Stack } from "@/components/elements/stack"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Input } from "@/components/ui/input"
 import { searchResponseSchema, type Company } from "@/lib/schemas/lead-form"
-import { AnimatedField } from "./animated-field"
 
 export function ManualSiretEntry({
   onSelect,
@@ -19,46 +20,50 @@ export function ManualSiretEntry({
 }) {
   const [siret, setSiret] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // Ce qui concerne la saisie s'affiche sous le champ ; une panne du service,
+  // dans le bloc d'erreur.
+  const [erreurChamp, setErreurChamp] = useState<string | null>(null)
+  const [erreurService, setErreurService] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     const cleaned = siret.replace(/\s/g, "")
+    setErreurService(null)
 
     if (cleaned.length !== 14) {
-      setError("Le SIRET doit contenir 14 chiffres")
+      setErreurChamp("Le SIRET doit contenir 14 chiffres")
       return
     }
 
     setLoading(true)
-    setError(null)
+    setErreurChamp(null)
 
     try {
       const res = await fetch(`/api/entreprises/search?q=${cleaned}`)
       const parsed = searchResponseSchema.safeParse(await res.json())
 
       if (!parsed.success) {
-        setError("Réponse inattendue du service de recherche d'entreprises")
+        setErreurService("Réponse inattendue du service de recherche d'entreprises")
         return
       }
 
       const data = parsed.data
 
       if (data.error) {
-        setError(data.error)
+        setErreurService(data.error)
         return
       }
 
       const match = data.results?.find((c) => c.siret === cleaned) ?? data.results?.[0]
 
       if (!match) {
-        setError("Aucune entreprise trouvée pour ce SIRET")
+        setErreurChamp("Aucune entreprise trouvée pour ce SIRET")
         return
       }
 
       onSelect(match)
     } catch {
-      setError("Impossible de contacter le service de recherche d'entreprises")
+      setErreurService("Impossible de contacter le service de recherche d'entreprises")
     } finally {
       setLoading(false)
     }
@@ -66,35 +71,29 @@ export function ManualSiretEntry({
 
   return (
     <AnimatedField index={1}>
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="siret">Numéro SIRET</Label>
-          <Input
-            id="siret"
-            inputMode="numeric"
-            placeholder="14 chiffres"
-            value={siret}
-            onChange={(e) => setSiret(e.target.value)}
-          />
-        </div>
+      <form onSubmit={handleSubmit} noValidate>
+        <Stack>
+          <FormField label="Numéro SIRET" error={erreurChamp ?? undefined}>
+            <Input
+              id="siret"
+              inputMode="numeric"
+              placeholder="14 chiffres"
+              value={siret}
+              onChange={(e) => setSiret(e.target.value)}
+            />
+          </FormField>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertTitle>Erreur</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+          {erreurService && <ErrorAlert>{erreurService}</ErrorAlert>}
 
-        {/* Mobile : bouton principal pleine largeur, au-dessus du retour. */}
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button type="submit" disabled={loading}>
-            {loading && <Loader2 className="size-4 animate-spin" />}
-            Valider
-          </Button>
-          <Button type="button" variant="ghost" onClick={onCancel}>
-            Retour à la recherche
-          </Button>
-        </div>
+          <FormActions>
+            <Button type="submit" loading={loading}>
+              Valider
+            </Button>
+            <Button type="button" variant="ghost" onClick={onCancel}>
+              Retour à la recherche
+            </Button>
+          </FormActions>
+        </Stack>
       </form>
     </AnimatedField>
   )

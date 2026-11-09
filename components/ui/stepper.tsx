@@ -329,8 +329,11 @@ function StepperIndicator({
       data-slot="stepper-indicator"
       data-state={state}
       className={cn(
-        "border-background bg-accent text-accent-foreground data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative flex size-6 shrink-0 items-center justify-center overflow-hidden",
-        "rounded-full text-xs",
+        // Pastille dklic : pleine en vert quand l'étape est en cours ou faite,
+        // blanche cerclée tant qu'elle est à venir.
+        "relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-small font-semibold",
+        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground",
+        "data-[state=inactive]:bg-surface data-[state=inactive]:text-muted-foreground data-[state=inactive]:ring-1 data-[state=inactive]:ring-foreground/15",
         className
       )}
     >
@@ -358,7 +361,7 @@ function StepperSeparator({ className }: React.ComponentProps<"div">) {
       data-slot="stepper-separator"
       data-state={state}
       className={cn(
-        "bg-muted rounded-sm group-data-[orientation=horizontal]/stepper-nav:h-0.5 group-data-[orientation=vertical]/stepper-nav:h-12 group-data-[orientation=vertical]/stepper-nav:w-0.5 m-0.5 group-data-[orientation=horizontal]/stepper-nav:flex-1",
+        "rounded-sm bg-foreground/10 data-[state=completed]:bg-primary group-data-[orientation=horizontal]/stepper-nav:h-0.5 group-data-[orientation=vertical]/stepper-nav:h-12 group-data-[orientation=vertical]/stepper-nav:w-0.5 mx-2 my-0.5 group-data-[orientation=horizontal]/stepper-nav:flex-1",
         className
       )}
     />
@@ -373,7 +376,9 @@ function StepperTitle({ children, className }: React.ComponentProps<"h3">) {
       data-slot="stepper-title"
       data-state={state}
       className={cn(
-        "text-sm leading-none font-medium",
+        // Sur mobile, seul le titre de l'étape en cours s'affiche : les trois
+        // ne tiennent pas en 390 px.
+        "hidden text-small leading-none font-medium data-[state=active]:block sm:block",
         className
       )}
     >
@@ -393,7 +398,7 @@ function StepperDescription({
       data-slot="stepper-description"
       data-state={state}
       className={cn(
-        "text-muted-foreground text-sm",
+        "text-muted-foreground text-small",
         className
       )}
     >
@@ -411,7 +416,7 @@ function StepperNav({ children, className }: React.ComponentProps<"nav">) {
       data-state={activeStep}
       data-orientation={orientation}
       className={cn(
-        "group/stepper-nav inline-flex data-[orientation=horizontal]:w-full data-[orientation=horizontal]:flex-row data-[orientation=vertical]:flex-col",
+        "group/stepper-nav flex data-[orientation=horizontal]:w-full data-[orientation=horizontal]:flex-row data-[orientation=vertical]:flex-col",
         className
       )}
     >

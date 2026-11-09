@@ -1,44 +1,36 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { Check, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
 
-import { Input } from "@/components/elements/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AnimatedField } from "@/components/elements/animated-field"
+import { CheckList } from "@/components/elements/check-list"
+import { ErrorAlert } from "@/components/elements/error-alert"
+import { SearchCombobox } from "@/components/elements/search-combobox"
+import { SectionHeader } from "@/components/elements/section-header"
+import { Stack } from "@/components/elements/stack"
+import { Text } from "@/components/elements/text"
+import { TextLink } from "@/components/elements/text-link"
+import { Card, CardContent } from "@/components/ui/card"
 import { formaterNom } from "@/lib/format"
 import { searchResponseSchema, type Company } from "@/lib/schemas/lead-form"
-import { AnimatedField } from "./animated-field"
-import { useDebouncedValue } from "./use-debounced-value"
 import { ManualSiretEntry } from "./manual-siret-entry"
-import { StepCard } from "./step-card"
+
+const RECHERCHE_MIN = 2
+const ATOUTS = ["Gratuit", "Sans engagement", "Données officielles"]
 
 export function StepCompanySearch({
   onSelect,
 }: {
   onSelect: (company: Company) => void
 }) {
-  const [query, setQuery] = useState("")
-  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState("")
   const [results, setResults] = useState<Company[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [manualMode, setManualMode] = useState(false)
-  const debouncedQuery = useDebouncedValue(query, 350)
-  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", onClickOutside)
-    return () => document.removeEventListener("mousedown", onClickOutside)
-  }, [])
-
-  useEffect(() => {
-    if (debouncedQuery.trim().length < 2) {
+    if (search.length < RECHERCHE_MIN) {
       return
     }
 
@@ -48,7 +40,7 @@ export function StepCompanySearch({
       setLoading(true)
       setError(null)
 
-      fetch(`/api/entreprises/search?q=${encodeURIComponent(debouncedQuery)}`, {
+      fetch(`/api/entreprises/search?q=${encodeURIComponent(search)}`, {
         signal: controller.signal,
       })
         .then((res) => res.json())
@@ -79,118 +71,70 @@ export function StepCompanySearch({
     runSearch()
 
     return () => controller.abort()
-  }, [debouncedQuery])
+  }, [search])
 
   return (
-    // `overflow-visible` : la carte coupe par défaut ce qui dépasse, ce qui
-    // masquerait la liste d'auto-complétion sous le champ. Le menu porte son
-    // propre fond opaque, il reste lisible en dehors de la carte.
-    <StepCard className="overflow-visible">
-      <div className="space-y-6 sm:space-y-8">
-        <AnimatedField index={0}>
-          <div className="space-y-3">
-            <h1 className="text-heading leading-tight font-semibold">
-              Calculez votre budget formation
-            </h1>
-            <p className="text-muted-foreground">
-              Découvrez en 1 minute votre OPCO et le budget formation annuel de
-              votre entreprise.
-            </p>
-            <ul className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm font-medium">
-              {["Gratuit", "Sans engagement", "Données officielles"].map((atout) => (
-                <li key={atout} className="flex items-center gap-1.5">
-                  <Check className="size-4 text-primary" />
-                  {atout}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </AnimatedField>
-
-        {!manualMode ? (
-          <AnimatedField index={1}>
-            <div ref={containerRef} className="relative space-y-2">
-              <Label htmlFor="company-search">Nom de l&apos;entreprise ou SIRET</Label>
-              <Input
-                id="company-search"
-                autoComplete="off"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value)
-                  setOpen(true)
-                }}
-                onFocus={() => setOpen(true)}
-                placeholder="Ex : Boulangerie Martin"
+    <Card>
+      <CardContent>
+        <Stack gap="lg">
+          <AnimatedField index={0}>
+            <Stack gap="sm">
+              <SectionHeader
+                as="h1"
+                title="Calculez votre budget formation"
+                description="Découvrez en 1 minute votre OPCO et le budget formation annuel de votre entreprise."
               />
-
-              {open && debouncedQuery.trim().length >= 2 && (
-                <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl bg-white text-popover-foreground shadow-lg ring-1 ring-foreground/10">
-                  {loading && (
-                    <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
-                      <Loader2 className="size-4 animate-spin" />
-                      Recherche en cours...
-                    </div>
-                  )}
-                  {!loading && results.length === 0 && (
-                    <div className="px-4 py-4 text-sm text-muted-foreground">
-                      Aucune entreprise trouvée
-                    </div>
-                  )}
-                  {!loading && results.length > 0 && (
-                    <ul className="max-h-80 overflow-y-auto py-1.5">
-                      {results.map((company) => (
-                        <li key={company.siret}>
-                          <button
-                            type="button"
-                            className="flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left hover:bg-muted"
-                            onClick={() => {
-                              setOpen(false)
-                              onSelect(company)
-                            }}
-                          >
-                            <span className="font-medium">{formaterNom(company.nom)}</span>
-                            {/* L'adresse de l'annuaire contient déjà code postal
-                                et ville : ne pas les rajouter. */}
-                            <span className="text-sm text-muted-foreground">
-                              {formaterNom(company.adresse)}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-            </div>
+              <CheckList items={ATOUTS} />
+            </Stack>
           </AnimatedField>
-        ) : (
-          <ManualSiretEntry
-            onSelect={onSelect}
-            onCancel={() => setManualMode(false)}
-          />
-        )}
 
-        {error && (
-          <AnimatedField index={2}>
-            <Alert variant="destructive">
-              <AlertTitle>Erreur</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          </AnimatedField>
-        )}
+          {!manualMode ? (
+            <AnimatedField index={1}>
+              <SearchCombobox
+                id="company-search"
+                label="Nom de l'entreprise ou SIRET"
+                placeholder="Ex : Boulangerie Martin"
+                items={results}
+                loading={loading}
+                minChars={RECHERCHE_MIN}
+                onSearch={setSearch}
+                onSelect={onSelect}
+                itemKey={(company) => company.siret}
+                itemLabel={(company) => formaterNom(company.nom)}
+                emptyMessage="Aucune entreprise trouvée"
+                renderItem={(company) => (
+                  <>
+                    <Text as="span" weight="medium">
+                      {formaterNom(company.nom)}
+                    </Text>
+                    {/* L'adresse de l'annuaire contient déjà code postal et
+                        ville : ne pas les rajouter. */}
+                    <Text as="span" size="small" tone="muted">
+                      {formaterNom(company.adresse)}
+                    </Text>
+                  </>
+                )}
+              />
+            </AnimatedField>
+          ) : (
+            <ManualSiretEntry onSelect={onSelect} onCancel={() => setManualMode(false)} />
+          )}
 
-        {!manualMode && (
-          <AnimatedField index={3}>
-            <button
-              type="button"
-              onClick={() => setManualMode(true)}
-              className="text-left text-sm font-medium text-primary underline-offset-4 hover:underline"
-            >
-              Introuvable ? Saisir le SIRET
-            </button>
-          </AnimatedField>
-        )}
-      </div>
-    </StepCard>
+          {error && (
+            <AnimatedField index={2}>
+              <ErrorAlert>{error}</ErrorAlert>
+            </AnimatedField>
+          )}
+
+          {!manualMode && (
+            <AnimatedField index={3}>
+              <TextLink onClick={() => setManualMode(true)}>
+                Introuvable ? Saisir le SIRET
+              </TextLink>
+            </AnimatedField>
+          )}
+        </Stack>
+      </CardContent>
+    </Card>
   )
 }

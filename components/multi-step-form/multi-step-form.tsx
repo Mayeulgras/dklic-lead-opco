@@ -1,17 +1,10 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { AnimatePresence, motion } from "motion/react"
 
-import {
-  Stepper,
-  StepperIndicator,
-  StepperItem,
-  StepperNav,
-  StepperSeparator,
-  StepperTitle,
-  StepperTrigger,
-} from "@/components/ui/stepper"
+import { Stack } from "@/components/elements/stack"
+import { StepProgress } from "@/components/elements/step-progress"
+import { StepTransition } from "@/components/elements/step-transition"
 import { soumettreDemande } from "@/app/actions/lead"
 import { tailleDepuisTranche, type Taille } from "@/lib/financement/effectif"
 import { resoudreOpco } from "@/lib/financement/opco-resolution"
@@ -75,73 +68,35 @@ export function MultiStepForm() {
   }
 
   return (
-    // `sm:my-auto` : centré verticalement sur ordinateur. Sur mobile on reste en
-    // haut, sous le logo — centrer y laissait un grand vide inutile.
-    <div className="w-full max-w-2xl sm:my-auto">
-      <Stepper
+    <Stack gap="lg">
+      <StepProgress
+        steps={STEP_TITLES}
         value={activeStep}
-        onValueChange={(step) => {
-          if (step <= maxReachedStep) setActiveStep(step)
-        }}
-      >
-        <StepperNav className="mb-6 sm:mb-8">
-          {STEP_TITLES.map((title, i) => {
-            const step = i + 1
-            return (
-              <StepperItem key={step} step={step} disabled={step > maxReachedStep}>
-                <StepperTrigger>
-                  <StepperIndicator className="size-8 text-sm font-semibold data-[state=inactive]:bg-white data-[state=inactive]:text-muted-foreground data-[state=inactive]:ring-1 data-[state=inactive]:ring-foreground/15">
-                    {step}
-                  </StepperIndicator>
-                  {/* Sur mobile, seul le nom de l'étape en cours s'affiche :
-                      les trois ne tiennent pas en 390 px. */}
-                  <StepperTitle className="hidden text-sm data-[state=active]:block sm:block">
-                    {title}
-                  </StepperTitle>
-                </StepperTrigger>
-                {i < STEP_TITLES.length - 1 && (
-                  <StepperSeparator className="mx-2 bg-foreground/10 data-[state=completed]:bg-primary" />
-                )}
-              </StepperItem>
-            )
-          })}
-        </StepperNav>
-      </Stepper>
+        maxReached={maxReachedStep}
+        onValueChange={setActiveStep}
+      />
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeStep}
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -16 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-        >
-          {activeStep === 1 && <StepCompanySearch onSelect={handleSelect} />}
+      <StepTransition stepKey={activeStep}>
+        {activeStep === 1 && <StepCompanySearch onSelect={handleSelect} />}
 
-          {activeStep === 2 && company && (
-            <StepCoordonnees
-              company={company}
-              opco={opco}
-              taille={taille}
-              onTailleChange={setTaille}
-              defaultValues={contact ?? {}}
-              loading={loading}
-              error={error}
-              onBack={() => setActiveStep(1)}
-              onSubmit={handleSubmit}
-            />
-          )}
+        {activeStep === 2 && company && (
+          <StepCoordonnees
+            company={company}
+            opco={opco}
+            taille={taille}
+            onTailleChange={setTaille}
+            defaultValues={contact ?? {}}
+            loading={loading}
+            error={error}
+            onBack={() => setActiveStep(1)}
+            onSubmit={handleSubmit}
+          />
+        )}
 
-          {activeStep === 3 && envoye && company && taille && (
-            <StepResult
-              company={company}
-              opco={opco}
-              taille={taille}
-              onRappel={handleRappel}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </div>
+        {activeStep === 3 && envoye && company && taille && (
+          <StepResult company={company} opco={opco} taille={taille} onRappel={handleRappel} />
+        )}
+      </StepTransition>
+    </Stack>
   )
 }

@@ -15,19 +15,6 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -44,6 +31,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-surface: var(--surface);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -53,9 +41,14 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
   --text-sub: var(--text-sub);
+  --text-small: var(--text-small);
+  --text-small--line-height: calc(1.25 / 0.875);
   --text-base: var(--text-base);
   --text-title: var(--text-title);
   --text-heading: var(--text-heading);
+  --text-field: var(--text-field);
+  --text-display: var(--text-display);
+  --text-display-sm: var(--text-display-sm);
 }
 
 :root {
@@ -63,9 +56,12 @@
   /* Sable clair */
   --foreground: #000000;
   /* Noir classique */
-  --card: #fdf9ef;
+  /* Surface blanche : cartes, menus, champs et boutons de choix. Elle fait
+     ressortir le contenu sur le fond sable animé. */
+  --surface: #ffffff;
+  --card: var(--surface);
   --card-foreground: #000000;
-  --popover: #fdf9ef;
+  --popover: var(--surface);
   --popover-foreground: #000000;
   --primary: #106d7a;
   /* Vert */
@@ -81,28 +77,30 @@
   --border: rgb(0 0 0 / 10%);
   --input: rgb(0 0 0 / 15%);
   --ring: #106d7a;
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
 
-  /* Échelle typographique. Les champs de saisie restent à 16 px quoi qu'il
-     arrive (voir components/elements/input.tsx) : en dessous, Safari iOS zoome
-     tout seul quand on tape. */
-  --text-sub: 12px;
-  --text-base: 15px;
-  --text-title: 17px;
-  --text-heading: 22px;
+  /* Échelle typographique : les seules tailles de texte de l'application.
+     Aucune taille Tailwind par défaut (text-sm, text-xl…) dans les composants. */
+  --text-sub: 12px; /* mentions légales */
+  --text-small: 14px; /* étiquettes, erreurs, textes secondaires */
+  --text-base: 15px; /* texte courant */
+  --text-title: 17px; /* sous-titres */
+  --text-heading: 22px; /* titres d'étape */
+  /* Champs de saisie : jamais moins de 16 px, sinon Safari iOS zoome tout seul
+     quand on tape. Ne pas l'appeler `input` : c'est déjà le nom d'une couleur,
+     et `text-input` donnerait un texte gris clair au lieu d'une taille. */
+  --text-field: 16px;
+  /* Le montant du budget, et sa version réduite pour une fourchette (agrandis
+     au-delà de 640 px, voir plus bas). */
+  --text-display: 36px;
+  --text-display-sm: 24px;
+}
+
+@media (width >= 40rem) {
+  :root {
+    --text-display: 48px;
+    --text-display-sm: 30px;
+  }
 }
 
 @layer base {

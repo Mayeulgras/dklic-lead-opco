@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 const poppins = Poppins({
   variable: "--font-sans",
@@ -29,9 +28,7 @@ export default function RootLayout({
       lang="fr"
       className={`${poppins.variable} ${geistMono.variable} h-dvh overflow-hidden antialiased`}
     >
-      <body className="h-full flex flex-col overflow-hidden">
-        <TooltipProvider>{children}</TooltipProvider>
-      </body>
+      <body className="h-full flex flex-col overflow-hidden">{children}</body>
     </html>
   );
 }

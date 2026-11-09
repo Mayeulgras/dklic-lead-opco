@@ -64,8 +64,10 @@ for (const cas of CAS) {
 
     // Étape 1 — recherche (API Recherche d'entreprises en direct)
     await page.fill("#company-search", cas.recherche)
-    await page.waitForSelector("ul li button", { timeout: 15000 })
-    await page.locator("ul li button").first().click()
+    // La liste de suggestions est un vrai « listbox » : on vise les options.
+    const suggestion = page.getByRole("option").first()
+    await suggestion.waitFor({ timeout: 15000 })
+    await suggestion.click()
 
     // Étape 2 — détection + coordonnées
     await page.waitForSelector("text=Nous avons trouvé votre entreprise")
@@ -82,7 +84,7 @@ for (const cas of CAS) {
     // Étape 3 — budget
     await page.waitForSelector("text=Votre budget formation", { timeout: 20000 })
     await page.waitForTimeout(600)
-    const montant = normaliser(await page.locator("p.tabular-nums").innerText())
+    const montant = normaliser(await page.locator("[data-slot='amount']").innerText())
 
     await page.getByRole("button", { name: "Être rappelé par un conseiller" }).click()
     const rappel = await page.locator("text=/un conseiller vous rappelle/").count()
