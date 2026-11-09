@@ -27,25 +27,37 @@ describe("taille de l'entreprise", () => {
 
 describe("budget annuel", () => {
   it("lit le plafond de l'OPCO pour la taille", () => {
-    assert.equal(budgetAnnuel("AFDAS", "moins11"), 1_100)
-    assert.equal(budgetAnnuel("AFDAS", "de11a49"), 1_800)
-    assert.equal(budgetAnnuel("OPCO_EP", "moins11"), 4_200)
+    assert.deepEqual(budgetAnnuel("AFDAS", "moins11"), { type: "montant", montant: 1_100 })
+    assert.deepEqual(budgetAnnuel("AFDAS", "de11a49"), { type: "montant", montant: 1_800 })
+    assert.deepEqual(budgetAnnuel("OPCO_EP", "moins11"), { type: "montant", montant: 4_200 })
   })
 
   it("n'annonce aucune enveloppe au-delà de 50 salariés", () => {
     for (const opco of [...TOUS_LES_OPCO, null]) {
-      assert.equal(budgetAnnuel(opco, "plus50"), null, `${opco}`)
+      assert.equal(budgetAnnuel(opco, "plus50").type, "surEtude", `${opco}`)
     }
   })
 
-  it("donne une estimation moyenne quand l'OPCO est inconnu", () => {
-    const moins11 = budgetAnnuel(null, "moins11")!
-    const de11a49 = budgetAnnuel(null, "de11a49")!
+  it("donne une fourchette quand l'OPCO est inconnu", () => {
+    const b = budgetAnnuel(null, "moins11")
+    assert.equal(b.type, "fourchette")
+    if (b.type !== "fourchette") return
 
-    // Médiane des onze OPCO : ni le plus bas, ni le plus haut.
     const valeurs = Object.values(PLAFONDS_ANNUELS).map((p) => p.moins11)
-    assert.ok(moins11 > Math.min(...valeurs) && moins11 < Math.max(...valeurs))
-    assert.ok(de11a49 >= moins11)
+    assert.equal(b.min, Math.min(...valeurs))
+    assert.equal(b.max, Math.max(...valeurs))
+    assert.ok(b.min < b.max)
+  })
+
+  it("ne confond jamais un montant d'OPCO avec le cas « OPCO inconnu »", () => {
+    // Le piège qui a fait croire à un bug : une moyenne peut tomber pile sur le
+    // plafond d'un OPCO réel. Une fourchette, jamais.
+    for (const taille of ["moins11", "de11a49"] as const) {
+      assert.equal(budgetAnnuel(null, taille).type, "fourchette")
+      for (const opco of TOUS_LES_OPCO) {
+        assert.equal(budgetAnnuel(opco, taille).type, "montant", `${opco}`)
+      }
+    }
   })
 
   it("couvre les onze OPCO avec des montants plausibles", () => {

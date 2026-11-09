@@ -21,7 +21,9 @@ export const PLAFONDS_ANNUELS: Record<OpcoId, Plafonds> = {
   AFDAS: { moins11: 1_100, de11a49: 1_800 }, // critères 2026
   AKTO: { moins11: 4_500, de11a49: 5_600 }, // règles de prise en charge 2026
   ATLAS: { moins11: 8_000, de11a49: 8_000 }, // panorama OGMA 2026
-  CONSTRUCTYS: { moins11: 3_000, de11a49: 5_000 }, // estimé, aucun plafond par entreprise publié
+  // Constructys ne publie pas de budget national (« contactez vos interlocuteurs
+  // en région ») : 3 500 € vient d'une source secondaire, le reste est estimé.
+  CONSTRUCTYS: { moins11: 3_500, de11a49: 5_000 },
   OCAPIAT: { moins11: 3_000, de11a49: 5_000 }, // estimé, plafond publié par stagiaire (1 500 €)
   OPCOMMERCE: { moins11: 2_000, de11a49: 4_000 }, // IDCC 2216, commerce de détail
   OPCO_2I: { moins11: 6_000, de11a49: 6_000 }, // moins de 50 salariés
@@ -31,22 +33,24 @@ export const PLAFONDS_ANNUELS: Record<OpcoId, Plafonds> = {
   UNIFORMATION: { moins11: 5_000, de11a49: 5_000 }, // moins de 50 salariés
 }
 
-function mediane(valeurs: number[]): number {
-  const tri = [...valeurs].sort((a, b) => a - b)
-  const milieu = Math.floor(tri.length / 2)
-  return tri.length % 2 ? tri[milieu] : Math.round((tri[milieu - 1] + tri[milieu]) / 2)
-}
-
 /**
- * Budget annuel estimé.
- * - `null` au-delà de 50 salariés : le financement se décide projet par projet,
- *   il n'y a pas d'enveloppe à annoncer.
- * - OPCO inconnu (aucune convention déclarée) : médiane des onze OPCO pour la
- *   taille, calculée plutôt que figée pour suivre les révisions du tableau.
+ * Ce qu'on peut annoncer au visiteur :
+ * - `montant` : l'OPCO est connu, on donne son plafond ;
+ * - `fourchette` : aucune convention déclarée, on donne l'écart entre tous les
+ *   OPCO plutôt qu'une moyenne — une moyenne ressemblerait à un chiffre précis
+ *   et pourrait même coïncider avec le plafond d'un OPCO réel ;
+ * - `surEtude` : au-delà de 50 salariés, le financement se décide projet par
+ *   projet, il n'y a pas d'enveloppe à annoncer.
  */
-export function budgetAnnuel(opco: OpcoId | null, taille: Taille): number | null {
-  if (taille === "plus50") return null
-  if (opco) return PLAFONDS_ANNUELS[opco][taille]
+export type Budget =
+  | { type: "montant"; montant: number }
+  | { type: "fourchette"; min: number; max: number }
+  | { type: "surEtude" }
 
-  return mediane(Object.values(PLAFONDS_ANNUELS).map((p) => p[taille]))
+export function budgetAnnuel(opco: OpcoId | null, taille: Taille): Budget {
+  if (taille === "plus50") return { type: "surEtude" }
+  if (opco) return { type: "montant", montant: PLAFONDS_ANNUELS[opco][taille] }
+
+  const valeurs = Object.values(PLAFONDS_ANNUELS).map((p) => p[taille])
+  return { type: "fourchette", min: Math.min(...valeurs), max: Math.max(...valeurs) }
 }

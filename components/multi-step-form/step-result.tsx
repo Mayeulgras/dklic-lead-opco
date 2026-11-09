@@ -9,6 +9,7 @@ import { budgetAnnuel } from "@/lib/financement/budget"
 import { libelleTaille, type Taille } from "@/lib/financement/effectif"
 import { libelleOpco, type OpcoId } from "@/lib/financement/opcos"
 import { formaterNom } from "@/lib/format"
+import { cn } from "@/lib/utils"
 import type { Company } from "@/lib/schemas/lead-form"
 import { AnimatedField } from "./animated-field"
 import { StepCard } from "./step-card"
@@ -38,12 +39,21 @@ export function StepResult({
   const [rappelDemande, setRappelDemande] = useState(false)
   const budget = budgetAnnuel(opco, taille)
 
+  // Trois cas, trois façons de l'annoncer. La fourchette (OPCO inconnu) est
+  // écrite plus petit : elle est deux fois plus longue qu'un montant.
+  const montant =
+    budget.type === "surEtude"
+      ? "Sur étude"
+      : budget.type === "montant"
+        ? euros.format(budget.montant)
+        : `${euros.format(budget.min)} – ${euros.format(budget.max)}`
+
   const precision =
-    budget === null
+    budget.type === "surEtude"
       ? "Au-delà de 50 salariés, votre OPCO finance vos formations projet par projet."
-      : opco
-        ? `par an, pris en charge par ${libelleOpco(opco)} pour une entreprise de ${libelleTaille(taille)}`
-        : `par an en moyenne pour une entreprise de ${libelleTaille(taille)}`
+      : budget.type === "montant"
+        ? `par an, pris en charge par ${libelleOpco(opco!)} pour une entreprise de ${libelleTaille(taille)}`
+        : `par an selon l'OPCO dont vous dépendez, pour une entreprise de ${libelleTaille(taille)}. Nous ne l'avons pas identifié : aucune convention collective n'est déclarée pour votre entreprise.`
 
   return (
     <StepCard>
@@ -62,8 +72,15 @@ export function StepResult({
 
         <AnimatedField index={1}>
           <div className="space-y-2 rounded-xl bg-secondary p-6 sm:p-8">
-            <p className="text-4xl leading-none font-semibold tracking-tight tabular-nums sm:text-5xl">
-              {budget === null ? "Sur étude" : euros.format(budget)}
+            <p
+              className={cn(
+                "leading-none font-semibold tracking-tight tabular-nums",
+                budget.type === "fourchette"
+                  ? "text-2xl sm:text-3xl"
+                  : "text-4xl sm:text-5xl"
+              )}
+            >
+              {montant}
             </p>
             <p className="text-muted-foreground">{precision}</p>
           </div>

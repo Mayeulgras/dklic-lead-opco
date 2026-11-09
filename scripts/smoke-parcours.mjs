@@ -36,8 +36,8 @@ const CAS = [
   {
     nom: "Aucune convention, petite entreprise",
     recherche: "danone", // IDCC 9999 -> pas d'OPCO
-    taille: "0 à 10", // forcée pour obtenir la moyenne
-    attendu: { opco: "OPCO non identifié", montant: "3 000 €" },
+    taille: "0 à 10", // forcée pour obtenir la fourchette
+    attendu: { opco: "OPCO non identifié", montant: "1 100 € – 8 000 €" },
   },
   {
     nom: "50 salariés et plus",

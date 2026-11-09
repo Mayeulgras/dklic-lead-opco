@@ -4,7 +4,7 @@ Ce document fait foi pour le moteur de calcul (`lib/financement/`). Il consigne 
 demande du responsable de l'entreprise, ce qui a été vérifié sur sources
 officielles, et les décisions qui en découlent.
 
-Dernière mise à jour : 2026-09-16
+Dernière mise à jour : 2026-10-02
 
 ---
 
@@ -43,7 +43,7 @@ Une lecture de tableau : `PLAFONDS_ANNUELS[opco][taille]` dans
 | Afdas | 1 100 € | 1 800 € | critères 2026 |
 | AKTO | 4 500 € | 5 600 € | règles de prise en charge 2026 |
 | OPCO Atlas | 8 000 € | 8 000 € | panorama OGMA 2026 |
-| Constructys | 3 000 € | 5 000 € | **estimé** (plafond publié par salarié seulement) |
+| Constructys | 3 500 € | 5 000 € | source secondaire pour 3 500 € ; aucun budget national publié (« contactez vos interlocuteurs en région ») |
 | OCAPIAT | 3 000 € | 5 000 € | **estimé** (plafond publié par stagiaire seulement) |
 | L'Opcommerce | 2 000 € | 4 000 € | IDCC 2216, commerce de détail |
 | OPCO 2i | 6 000 € | 6 000 € | moins de 50 salariés |
@@ -55,7 +55,11 @@ Une lecture de tableau : `PLAFONDS_ANNUELS[opco][taille]` dans
 - **50 salariés et plus** : pas de montant, « Sur étude » — le financement se
   décide projet par projet.
 - **OPCO non identifié** (aucune convention déclarée, ~1 entreprise sur 3) :
-  médiane des onze OPCO, soit 3 000 € sous 11 salariés et 5 000 € de 11 à 49.
+  **fourchette** entre le plus bas et le plus haut des onze OPCO (1 100 € à
+  8 000 € sous 11 salariés). Une médiane était affichée au départ : elle tombait
+  pile sur les plafonds de Constructys et d'OCAPIAT, si bien qu'on ne pouvait
+  plus distinguer « OPCO trouvé » de « OPCO inconnu ». Une fourchette ne peut
+  jamais être confondue avec un montant précis.
 
 OPCO EP était auparavant à 10 000 € : cette valeur venait d'une branche de niche
 (mandataires judiciaires). Remplacée par la branche coiffure, représentative des
