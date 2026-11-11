@@ -54,3 +54,19 @@ export function budgetAnnuel(opco: OpcoId | null, taille: Taille): Budget {
   const valeurs = Object.values(PLAFONDS_ANNUELS).map((p) => p[taille])
   return { type: "fourchette", min: Math.min(...valeurs), max: Math.max(...valeurs) }
 }
+
+const euros = new Intl.NumberFormat("fr-FR", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 0,
+})
+
+/**
+ * Le budget tel qu'il est annoncé, à l'écran comme dans le mail et la fiche
+ * Odoo : le conseiller voit exactement ce que le visiteur a vu.
+ */
+export function formaterBudget(budget: Budget): string {
+  if (budget.type === "surEtude") return "Sur étude"
+  if (budget.type === "montant") return euros.format(budget.montant)
+  return `${euros.format(budget.min)} – ${euros.format(budget.max)}`
+}

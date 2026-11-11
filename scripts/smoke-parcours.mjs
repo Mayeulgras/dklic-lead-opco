@@ -86,8 +86,14 @@ for (const cas of CAS) {
     await page.waitForTimeout(600)
     const montant = normaliser(await page.locator("[data-slot='amount']").innerText())
 
+    // Le rappel passe par le serveur (Odoo + mail, simulés en dev) : on attend
+    // la confirmation au lieu de la lire tout de suite.
     await page.getByRole("button", { name: "Être rappelé par un conseiller" }).click()
-    const rappel = await page.locator("text=/un conseiller vous rappelle/").count()
+    const rappel = await page
+      .locator("text=/un conseiller vous rappelle/")
+      .waitFor({ timeout: 20000 })
+      .then(() => 1)
+      .catch(() => 0)
 
     const ok =
       opco === cas.attendu.opco &&

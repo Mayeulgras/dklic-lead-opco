@@ -30,7 +30,7 @@ function ToggleGroupItem<Value extends string>({
     <TogglePrimitive
       data-slot="toggle-group-item"
       className={cn(
-        "h-10 flex-1 rounded-lg border border-border bg-surface px-2 text-base font-medium whitespace-nowrap transition-colors outline-none hover:border-primary/40 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+        "h-10 flex-1 cursor-pointer rounded-lg border border-border bg-surface px-2 text-base font-medium whitespace-nowrap transition-colors outline-none hover:border-primary/40 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
         "data-pressed:border-primary data-pressed:bg-primary data-pressed:text-primary-foreground",
         className
       )}

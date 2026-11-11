@@ -2,7 +2,7 @@ import { cva } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-const textLinkVariants = cva("underline-offset-4", {
+const textLinkVariants = cva("cursor-pointer underline-offset-4", {
   variants: {
     variant: {
       /** Lien seul, qui déclenche une action (« Saisir le SIRET »). */

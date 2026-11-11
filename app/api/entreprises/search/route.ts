@@ -5,6 +5,7 @@ import {
   rechercheEntreprisesResponseSchema,
   type Company,
 } from "@/lib/schemas/lead-form"
+import { RECHERCHE_MIN_CARACTERES } from "@/lib/config"
 import { clientKey, rateLimit } from "@/lib/rate-limit"
 
 const API_URL = "https://recherche-entreprises.api.gouv.fr/search"
@@ -50,11 +51,11 @@ function toCompany(result: RawResult): Company | null {
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim()
 
-  if (!q || q.length < 2) {
+  if (!q || q.length < RECHERCHE_MIN_CARACTERES) {
     return NextResponse.json({ results: [] })
   }
 
-  const { ok, retryAfter } = rateLimit(clientKey(request), RATE_LIMIT)
+  const { ok, retryAfter } = rateLimit(clientKey(request.headers), RATE_LIMIT)
 
   if (!ok) {
     return NextResponse.json(
@@ -88,7 +89,8 @@ export async function GET(request: NextRequest) {
   if (!res.ok) {
     console.error(`Recherche d'entreprises a répondu ${res.status} ${res.statusText}`)
     return NextResponse.json(
-      { error: "Impossible de contacter l'API Recherche d'entreprises" },
+      // Message lu par le visiteur : pas de jargon (« API »).
+      { error: "La recherche d'entreprises a échoué, réessayez dans un instant" },
       { status: 502 }
     )
   }

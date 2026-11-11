@@ -1,5 +1,3 @@
-import type { NextRequest } from "next/server"
-
 /**
  * Limiteur de débit à fenêtre fixe, en mémoire.
  *
@@ -48,13 +46,14 @@ export function rateLimit(
 
 /**
  * Identifie l'appelant. `NextRequest.ip` a été supprimé en Next 15, on lit donc
- * les en-têtes posés par le proxy. Retombe sur une clé commune si aucun en-tête
+ * les en-têtes posés par le proxy (ceux de la requête ou de `headers()` dans une
+ * action serveur). Retombe sur une clé commune si aucun en-tête
  * n'est présent (dev local) : la limite devient alors globale, ce qui reste le
  * comportement sûr.
  */
-export function clientKey(request: NextRequest): string {
-  const forwardedFor = request.headers.get("x-forwarded-for")
+export function clientKey(headers: Pick<Headers, "get">): string {
+  const forwardedFor = headers.get("x-forwarded-for")
   if (forwardedFor) return forwardedFor.split(",")[0].trim()
 
-  return request.headers.get("x-real-ip") ?? "unknown"
+  return headers.get("x-real-ip") ?? "unknown"
 }

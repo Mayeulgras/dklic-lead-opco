@@ -9,3 +9,11 @@
  */
 export const PRIVACY_POLICY_URL =
   process.env.NEXT_PUBLIC_PRIVACY_POLICY_URL?.trim() || null
+
+/**
+ * Longueur minimale d'une recherche d'entreprise, imposée par l'API Recherche
+ * d'entreprises : en dessous, elle répond 400 (« 3 caractères minimum pour les
+ * termes de la requête »). Partagée par le champ et la route serveur pour
+ * qu'ils ne divergent plus.
+ */
+export const RECHERCHE_MIN_CARACTERES = 3

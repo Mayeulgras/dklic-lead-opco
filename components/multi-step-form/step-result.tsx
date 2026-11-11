@@ -3,7 +3,9 @@
 import { useState } from "react"
 
 import { AmountDisplay } from "@/components/elements/amount-display"
+import type { ResultatDemande } from "@/app/actions/lead"
 import { AnimatedField } from "@/components/elements/animated-field"
+import { ErrorAlert } from "@/components/elements/error-alert"
 import { FormActions } from "@/components/elements/form-actions"
 import { OpcoBadge } from "@/components/elements/opco-badge"
 import { SectionHeader } from "@/components/elements/section-header"
@@ -12,17 +14,11 @@ import { SuccessMessage } from "@/components/elements/success-message"
 import { Text } from "@/components/elements/text"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { budgetAnnuel } from "@/lib/financement/budget"
+import { budgetAnnuel, formaterBudget } from "@/lib/financement/budget"
 import { libelleTaille, type Taille } from "@/lib/financement/effectif"
 import { libelleOpco, type OpcoId } from "@/lib/financement/opcos"
 import { formaterNom } from "@/lib/format"
 import type { Company } from "@/lib/schemas/lead-form"
-
-const euros = new Intl.NumberFormat("fr-FR", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-})
 
 /**
  * Étape 3 : un seul chiffre, comme chez les concurrents. Le détail se dit au
@@ -38,19 +34,28 @@ export function StepResult({
   company: Company
   opco: OpcoId | null
   taille: Taille
-  onRappel: () => void
+  onRappel: () => Promise<ResultatDemande>
 }) {
-  const [rappelDemande, setRappelDemande] = useState(false)
+  const [rappel, setRappel] = useState<"attente" | "envoi" | "fait">("attente")
+  const [erreur, setErreur] = useState<string | null>(null)
   const budget = budgetAnnuel(opco, taille)
+
+  const demanderRappel = async () => {
+    setRappel("envoi")
+    setErreur(null)
+    const resultat = await onRappel()
+
+    if (resultat.ok) {
+      setRappel("fait")
+    } else {
+      setErreur(resultat.error)
+      setRappel("attente")
+    }
+  }
 
   // Trois cas, trois façons de l'annoncer. La fourchette (OPCO inconnu) est
   // affichée en taille réduite : elle est deux fois plus longue qu'un montant.
-  const montant =
-    budget.type === "surEtude"
-      ? "Sur étude"
-      : budget.type === "montant"
-        ? euros.format(budget.montant)
-        : `${euros.format(budget.min)} – ${euros.format(budget.max)}`
+  const montant = formaterBudget(budget)
 
   const precision =
     budget.type === "surEtude"
@@ -86,8 +91,14 @@ export function StepResult({
             </Text>
           </AnimatedField>
 
-          <AnimatedField index={3}>
-            {rappelDemande ? (
+          {erreur && (
+            <AnimatedField index={3}>
+              <ErrorAlert>{erreur}</ErrorAlert>
+            </AnimatedField>
+          )}
+
+          <AnimatedField index={4}>
+            {rappel === "fait" ? (
               <SuccessMessage>
                 C&apos;est noté : un conseiller vous rappelle pour affiner ce budget.
               </SuccessMessage>
@@ -96,10 +107,8 @@ export function StepResult({
                 <Button
                   type="button"
                   size="lg"
-                  onClick={() => {
-                    setRappelDemande(true)
-                    onRappel()
-                  }}
+                  loading={rappel === "envoi"}
+                  onClick={demanderRappel}
                 >
                   Être rappelé par un conseiller
                 </Button>

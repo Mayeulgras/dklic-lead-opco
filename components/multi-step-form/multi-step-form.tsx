@@ -5,7 +5,7 @@ import { useMemo, useState } from "react"
 import { Stack } from "@/components/elements/stack"
 import { StepProgress } from "@/components/elements/step-progress"
 import { StepTransition } from "@/components/elements/step-transition"
-import { soumettreDemande } from "@/app/actions/lead"
+import { demanderRappel, soumettreDemande, type ResultatDemande } from "@/app/actions/lead"
 import { tailleDepuisTranche, type Taille } from "@/lib/financement/effectif"
 import { resoudreOpco } from "@/lib/financement/opco-resolution"
 import type { Company, ContactInfo } from "@/lib/schemas/lead-form"
@@ -40,13 +40,13 @@ export function MultiStepForm() {
   }
 
   const handleSubmit = async (data: ContactInfo) => {
-    if (!company) return
+    if (!company || !taille) return
     setContact(data)
     setLoading(true)
     setError(null)
 
     try {
-      const resultat = await soumettreDemande(company, data)
+      const resultat = await soumettreDemande(company, data, taille)
 
       if (!resultat.ok) {
         setError(resultat.error)
@@ -62,9 +62,16 @@ export function MultiStepForm() {
     }
   }
 
-  const handleRappel = () => {
-    // TODO: signaler la demande de rappel sur le lead Odoo.
-    console.log("Rappel demandé :", { company, contact, opco, taille })
+  const handleRappel = async (): Promise<ResultatDemande> => {
+    if (!company || !contact || !taille) {
+      return { ok: false, error: "Votre demande a expiré, merci de recommencer" }
+    }
+
+    try {
+      return await demanderRappel(company, contact, taille)
+    } catch {
+      return { ok: false, error: "Une erreur est survenue, merci de réessayer dans un instant" }
+    }
   }
 
   return (

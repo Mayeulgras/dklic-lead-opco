@@ -22,7 +22,8 @@ import { FormField } from "./form-field"
  *
  * La liste ne s'ouvre qu'à partir de `minChars` caractères, une fois la frappe
  * terminée : on n'affiche jamais « aucun résultat » pour une recherche qui n'a
- * pas encore été lancée.
+ * pas encore été lancée. Elle reste aussi fermée quand la recherche a échoué
+ * (`error`) : « aucun résultat » contredirait le message d'erreur.
  */
 export function SearchCombobox<T>({
   id,
@@ -30,6 +31,7 @@ export function SearchCombobox<T>({
   placeholder,
   items,
   loading,
+  error = false,
   onSearch,
   onSelect,
   itemKey,
@@ -45,6 +47,8 @@ export function SearchCombobox<T>({
   placeholder?: string
   items: T[]
   loading: boolean
+  /** La dernière recherche a échoué ; l'appelant affiche lui-même l'erreur. */
+  error?: boolean
   /** Reçoit la recherche, sans espaces superflus, une fois la frappe terminée. */
   onSearch: (query: string) => void
   onSelect: (item: T) => void
@@ -72,8 +76,15 @@ export function SearchCombobox<T>({
       // Les résultats sont déjà filtrés par le service.
       filter={null}
       inputValue={query}
-      onInputValueChange={setQuery}
-      open={open && prete}
+      onInputValueChange={(value, details) => {
+        // Quand la liste se ferme sans choix (Échap, clic à côté, erreur),
+        // Base UI remet le champ à la valeur choisie, donc à vide : le visiteur
+        // perdrait sa saisie. Le champ n'a pas de bouton « effacer », ce
+        // motif ne vient donc que de là.
+        if (details.reason === "input-clear") return
+        setQuery(value)
+      }}
+      open={open && prete && !error}
       onOpenChange={setOpen}
       itemToStringLabel={itemLabel}
       isItemEqualToValue={(a: T, b: T) => itemKey(a) === itemKey(b)}

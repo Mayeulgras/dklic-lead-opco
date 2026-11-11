@@ -11,11 +11,11 @@ import { Stack } from "@/components/elements/stack"
 import { Text } from "@/components/elements/text"
 import { TextLink } from "@/components/elements/text-link"
 import { Card, CardContent } from "@/components/ui/card"
+import { RECHERCHE_MIN_CARACTERES } from "@/lib/config"
 import { formaterNom } from "@/lib/format"
 import { searchResponseSchema, type Company } from "@/lib/schemas/lead-form"
 import { ManualSiretEntry } from "./manual-siret-entry"
 
-const RECHERCHE_MIN = 2
 const ATOUTS = ["Gratuit", "Sans engagement", "Données officielles"]
 
 export function StepCompanySearch({
@@ -29,8 +29,12 @@ export function StepCompanySearch({
   const [error, setError] = useState<string | null>(null)
   const [manualMode, setManualMode] = useState(false)
 
+  // Une erreur ne vaut que pour la recherche en cours : si le visiteur efface
+  // jusqu'à repasser sous le minimum, elle n'a plus lieu d'être affichée.
+  const erreurVisible = search.length >= RECHERCHE_MIN_CARACTERES ? error : null
+
   useEffect(() => {
-    if (search.length < RECHERCHE_MIN) {
+    if (search.length < RECHERCHE_MIN_CARACTERES) {
       return
     }
 
@@ -96,7 +100,8 @@ export function StepCompanySearch({
                 placeholder="Ex : Boulangerie Martin"
                 items={results}
                 loading={loading}
-                minChars={RECHERCHE_MIN}
+                error={!!erreurVisible}
+                minChars={RECHERCHE_MIN_CARACTERES}
                 onSearch={setSearch}
                 onSelect={onSelect}
                 itemKey={(company) => company.siret}
@@ -120,9 +125,9 @@ export function StepCompanySearch({
             <ManualSiretEntry onSelect={onSelect} onCancel={() => setManualMode(false)} />
           )}
 
-          {error && (
+          {erreurVisible && (
             <AnimatedField index={2}>
-              <ErrorAlert>{error}</ErrorAlert>
+              <ErrorAlert>{erreurVisible}</ErrorAlert>
             </AnimatedField>
           )}
 

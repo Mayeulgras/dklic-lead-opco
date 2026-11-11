@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "vitest"
 
-import { PLAFONDS_ANNUELS, budgetAnnuel } from "./budget"
+import { PLAFONDS_ANNUELS, budgetAnnuel, formaterBudget } from "./budget"
 import { tailleDepuisTranche } from "./effectif"
 import { NB_IDCC_COUVERTS, resoudreOpco } from "./opco-resolution"
 import { OPCOS, type OpcoId } from "./opcos"
@@ -102,5 +102,16 @@ describe("identification de l'OPCO par IDCC", () => {
     for (const vide of [null, undefined, [], ["0001999"], ["abc"]]) {
       assert.equal(resoudreOpco(vide), null, `entrée ${JSON.stringify(vide)}`)
     }
+  })
+})
+
+describe("formaterBudget", () => {
+  // Intl sépare les milliers par une espace fine insécable : on compare sans.
+  const sansEspaces = (s: string) => s.replace(/\s/g, " ")
+
+  it("annonce les trois cas comme à l'écran", () => {
+    assert.equal(sansEspaces(formaterBudget({ type: "montant", montant: 4200 })), "4 200 €")
+    assert.equal(sansEspaces(formaterBudget({ type: "fourchette", min: 1100, max: 8000 })), "1 100 € – 8 000 €")
+    assert.equal(formaterBudget({ type: "surEtude" }), "Sur étude")
   })
 })

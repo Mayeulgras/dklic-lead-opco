@@ -7,8 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run",
-    "smoke": "node scripts/smoke-parcours.mjs"
+    "test": "vitest run --project unit",
+    "smoke": "node scripts/smoke-parcours.mjs",
+    "verifier": "vitest run --project verif scripts/verifier-connexions.verif.ts",
+    "essai-envoi": "vitest run --project verif scripts/essai-envoi.verif.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -18,6 +20,7 @@
     "lucide-react": "^1.24.0",
     "motion": "^12.42.2",
     "next": "16.2.10",
+    "nodemailer": "10.2.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.82.0",

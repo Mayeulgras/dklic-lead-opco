@@ -30,8 +30,9 @@ export function CheckboxField({
           onCheckedChange={(value) => onCheckedChange(value === true)}
         />
         {/* `block` : l'étiquette de base est en flex, ce qui éclaterait le
-            texte et le lien en colonnes séparées. */}
-        <FieldLabel className="block leading-relaxed font-normal text-muted-foreground">
+            texte et le lien en colonnes séparées. `cursor-pointer` : cliquer
+            sur le texte coche la case, la main doit l'annoncer. */}
+        <FieldLabel className="block cursor-pointer leading-relaxed font-normal text-muted-foreground">
           {label}
         </FieldLabel>
       </div>
