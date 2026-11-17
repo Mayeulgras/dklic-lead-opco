@@ -194,6 +194,21 @@ describe("enregistrerDansOdoo — demande de rappel", () => {
     assert.match(String(activites[0].note), /06 12 34 56 78/)
   })
 
+  it("cite les formations cochées dans la note et dans l'activité", async () => {
+    const { odoo, notes, activites } = fauxOdoo()
+    const formations = [
+      { nom: "Management d'équipes", url: "" },
+      { nom: "Cerveau performant", url: "" },
+    ]
+    await enregistrerDansOdoo(demandeExemple("rappel", { formations }), odoo, { commercialId: 7 })
+
+    assert.equal(
+      notes[0].body,
+      "Le prospect demande à être rappelé par un conseiller. Formations qui l'intéressent : Management d'équipes et Cerveau performant."
+    )
+    assert.match(String(activites[0].note), /Management d'équipes et Cerveau performant/)
+  })
+
   it("se contente de la note quand aucun commercial n'est désigné", async () => {
     const { odoo, notes, activites } = fauxOdoo()
     await enregistrerDansOdoo(demandeExemple("rappel"), odoo)

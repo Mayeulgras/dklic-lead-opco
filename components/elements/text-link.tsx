@@ -1,4 +1,5 @@
 import { cva } from "class-variance-authority"
+import { ArrowUpRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -32,13 +33,19 @@ type BoutonProps = Variante & React.ComponentProps<"button"> & { href?: undefine
 /** Le seul style de lien de l'application : une adresse (`href`) ou une action. */
 export function TextLink(props: LienProps | BoutonProps) {
   if (props.href !== undefined) {
-    const { variant, external, className, ...rest } = props
+    const { variant, external, className, children, ...rest } = props
     return (
       <a
         className={cn(textLinkVariants({ variant }), className)}
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         {...rest}
-      />
+      >
+        {children}
+        {/* Flèche « sort du site » sur les liens seuls ; pas au milieu d'une phrase. */}
+        {external && variant !== "inline" && (
+          <ArrowUpRight aria-hidden className="ml-0.5 inline size-3.5 align-[-2px]" />
+        )}
+      </a>
     )
   }
 

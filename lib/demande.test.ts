@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "vitest"
 
 import { demandeExemple } from "@/test/demande-exemple"
-import { echapperHtml, resumeDemande, resumeEnHtml, resumeEnTexte } from "./demande"
+import { echapperHtml, listeFormations, resumeDemande, resumeEnHtml, resumeEnTexte } from "./demande"
 
 describe("construireDemande", () => {
   it("recalcule l'OPCO et le budget à partir de l'entreprise et de la taille", () => {
@@ -48,6 +48,29 @@ describe("resumeDemande", () => {
     const sansOpco = resumeEnTexte(resumeDemande(demandeExemple("simulation", { company: { idcc: [] } })))
     assert.ok(sansOpco.includes("OPCO : Non identifié"))
     assert.ok(sansOpco.includes("Conventions collectives (IDCC) : Aucune déclarée"))
+  })
+})
+
+describe("formations cochées", () => {
+  const formations = [
+    { nom: "Management d'équipes", url: "https://dklic.odoo.com/shop/management-21" },
+    { nom: "Cerveau performant", url: "https://dklic.odoo.com/shop/cerveau-19" },
+  ]
+
+  it("apparaissent dans le résumé, avec le lien du programme", () => {
+    const texte = resumeEnTexte(resumeDemande(demandeExemple("rappel", { formations })))
+    assert.ok(texte.includes("FORMATIONS QUI L'INTÉRESSENT"))
+    assert.ok(texte.includes("Management d'équipes : https://dklic.odoo.com/shop/management-21"))
+  })
+
+  it("n'ajoutent pas de section quand il n'y en a pas", () => {
+    assert.ok(!resumeEnTexte(resumeDemande(demandeExemple("rappel"))).includes("FORMATIONS"))
+  })
+
+  it("se lisent en une phrase", () => {
+    assert.equal(listeFormations(formations), "Management d'équipes et Cerveau performant")
+    assert.equal(listeFormations([...formations, { nom: "IA", url: "" }]), "Management d'équipes, Cerveau performant et IA")
+    assert.equal(listeFormations(formations.slice(0, 1)), "Management d'équipes")
   })
 })
 

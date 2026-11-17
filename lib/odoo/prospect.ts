@@ -1,6 +1,6 @@
 import "server-only"
 
-import { nomComplet, resumeDemande, resumeEnHtml, type Demande } from "../demande"
+import { listeFormations, nomComplet, resumeDemande, resumeEnHtml, type Demande } from "../demande"
 import type { AppelOdoo } from "./client"
 
 /**
@@ -187,7 +187,10 @@ export async function enregistrerDansOdoo(
   }
 
   if (d.type === "rappel") {
-    await noter(odoo, opportuniteId, "Le prospect demande à être rappelé par un conseiller.")
+    const formations = d.formations.length
+      ? ` Formations qui l'intéressent : ${listeFormations(d.formations)}.`
+      : ""
+    await noter(odoo, opportuniteId, `Le prospect demande à être rappelé par un conseiller.${formations}`)
 
     if (options.commercialId) {
       await facultatif("activité de rappel", () =>
@@ -195,7 +198,7 @@ export async function enregistrerDansOdoo(
           ids: [opportuniteId],
           act_type_xmlid: "mail.mail_activity_data_call",
           summary: `Rappeler ${nomComplet(d.contact)} (simulateur OPCO)`,
-          note: `Téléphone : ${d.contact.telephone}`,
+          note: `Téléphone : ${d.contact.telephone}.${formations}`,
           user_id: options.commercialId,
         })
       )

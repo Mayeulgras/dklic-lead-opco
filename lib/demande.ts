@@ -16,6 +16,12 @@ import type { Company, ContactInfo } from "./schemas/lead-form"
 /** `simulation` : coordonnées laissées pour voir le budget. `rappel` : clic sur « Être rappelé ». */
 export type TypeDemande = "simulation" | "rappel"
 
+/** Une formation cochée « M'intéresse » sur les cartes du résultat. */
+export interface FormationRetenue {
+  nom: string
+  url: string
+}
+
 export interface Demande {
   type: TypeDemande
   company: Company
@@ -23,6 +29,8 @@ export interface Demande {
   taille: Taille
   opco: OpcoId | null
   budget: Budget
+  /** Formations cochées avant de demander le rappel (vide pour une simulation). */
+  formations: FormationRetenue[]
   /** Moment de l'envoi, qui fait foi pour le consentement RGPD. */
   date: Date
 }
@@ -32,10 +40,16 @@ export function construireDemande(
   company: Company,
   contact: ContactInfo,
   taille: Taille,
-  date = new Date()
+  { formations = [], date = new Date() }: { formations?: FormationRetenue[]; date?: Date } = {}
 ): Demande {
   const opco = resoudreOpco(company.idcc)
-  return { type, company, contact, taille, opco, budget: budgetAnnuel(opco, taille), date }
+  return { type, company, contact, taille, opco, budget: budgetAnnuel(opco, taille), formations, date }
+}
+
+/** « A, B et C » : pour les notes Odoo. */
+export function listeFormations(formations: FormationRetenue[]): string {
+  const noms = formations.map((f) => f.nom)
+  return noms.length < 2 ? (noms[0] ?? "") : `${noms.slice(0, -1).join(", ")} et ${noms.at(-1)}`
 }
 
 export function nomComplet(contact: ContactInfo): string {
@@ -74,6 +88,7 @@ export function resumeDemande(d: Demande): SectionResume[] {
         ["SIREN", company.siren],
         ["Adresse", company.adresse || "Non renseignée"],
         ["Code NAF", company.codeNaf || "Non renseigné"],
+        ...(company.codeNaf2025 ? [["Code NAF 2025", company.codeNaf2025] as [string, string]] : []),
         ["Conventions collectives (IDCC)", company.idcc.join(", ") || "Aucune déclarée"],
       ],
     },
@@ -86,6 +101,14 @@ export function resumeDemande(d: Demande): SectionResume[] {
         ["Rappel demandé", d.type === "rappel" ? "Oui" : "Non"],
       ],
     },
+    ...(d.formations.length
+      ? [
+          {
+            titre: "Formations qui l'intéressent",
+            lignes: d.formations.map((f): [string, string] => [f.nom, f.url]),
+          },
+        ]
+      : []),
     {
       titre: "Consentement",
       lignes: [["Accepté le", dateHeure.format(d.date)]],

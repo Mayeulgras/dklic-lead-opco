@@ -24,6 +24,23 @@ accès. Cette page dit lesquels demander, où les mettre et comment vérifier.
 3. **« Être rappelé »** ajoute une note sur l'opportunité, une activité
    « Appeler » au commercial désigné, et envoie un mail « Demande de rappel ».
 
+4. **Les cartes formations** (étape du budget) : trois formations de la
+   boutique Odoo choisies selon le secteur de l'entreprise, déduit de son code
+   d'activité (NAF). Celles que le visiteur coche « M'intéresse » sont citées
+   dans la note de rappel, l'activité et le mail.
+   - **Par secteurs**, dès que dklic a rangé ses formations sous une catégorie
+     « Secteurs » dans Odoo : les formations du secteur, puis « Tous
+     secteurs ». Procédure et proposition : `Secteurs_formations_a_valider.md`.
+   - **Par pôles** en attendant, quand le lien secteur → pôle est sans doute
+     possible (`POLES_PAR_SECTEUR`), sinon des formations générales.
+   - **Codes d'activité** : `lib/formations/secteurs.ts` traduit le code NAF
+     en secteur, pour les codes actuels comme pour ceux de la NAF 2025
+     (obligatoires au 1er janvier 2027), d'après la table de correspondance de
+     l'Insee.
+   - L'ordre suit le tri « En vedette » de la boutique, et le catalogue est
+     relu au plus une fois par heure. `npm run verifier` indique le mode
+     actif et signale les secteurs mal nommés et les formations oubliées.
+
 **Filet de sécurité.** Si Odoo ne répond pas (panne, clé expirée), le mail part
 quand même et prévient en rouge : « saisir ce contact à la main ». Le visiteur
 ne voit une erreur que si Odoo **et** le mail échouent tous les deux.
@@ -41,7 +58,9 @@ ne voit une erreur que si Odoo **et** le mail échouent tous les deux.
       Attention : sur Odoo en ligne, chaque utilisateur est facturé. On peut
       aussi prendre la clé d'un compte existant, mais c'est moins sûr.
 - [ ] **Sa clé API** : se connecter avec cet utilisateur, Préférences >
-      Sécurité du compte > Nouvelle clé API. Choisir la durée maximale. La clé
+      Sécurité du compte > Nouvelle clé API. Durée : « Clé persistante » si
+      Odoo la propose (elle n'expire jamais, à réserver à un utilisateur aux
+      droits limités, jamais un administrateur), sinon la plus longue. La clé
       ne s'affiche qu'**une fois** : la copier tout de suite.
 - [ ] **Le commercial qui reçoit les opportunités** (facultatif) : son
       identifiant Odoo, que `npm run verifier` affiche. Sans lui, les
@@ -76,8 +95,8 @@ voit pas.
 
 ## À ne pas oublier ensuite
 
-- **La clé API Odoo expire au bout de 3 mois au plus.** Mettre un rappel dans
-  l'agenda pour la renouveler avant. Si elle expire, les mails continuent
-  d'arriver avec l'alerte « saisir à la main ».
+- **Si la clé API Odoo a une durée** (pas « persistante »), mettre un rappel
+  dans l'agenda pour la renouveler avant son expiration. Si elle expire, les
+  mails continuent d'arriver avec l'alerte « saisir à la main ».
 - **La politique de confidentialité** doit mentionner que les coordonnées sont
   enregistrées dans Odoo et transmises par mail à l'équipe.

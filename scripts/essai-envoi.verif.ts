@@ -28,6 +28,7 @@ const SOCIETE_TEST = {
   codePostal: "75001",
   ville: "PARIS",
   codeNaf: "85.59A",
+  codeNaf2025: "",
   effectif: "01",
   idcc: ["3253"],
 }

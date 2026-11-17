@@ -10,8 +10,16 @@
 import assert from "node:assert/strict"
 import { beforeAll, describe, it } from "vitest"
 
+import { SECTEURS, TOUS_SECTEURS } from "@/lib/formations/secteurs"
+import {
+  modeSecteurs,
+  normaliserNom,
+  POLES_PAR_SECTEUR,
+  POLES_TRANSVERSAUX,
+} from "@/lib/formations/selection"
 import { configMail, transportMail } from "@/lib/mail/notification"
 import { clientOdoo, configOdoo, type AppelOdoo } from "@/lib/odoo/client"
+import { lireCatalogueOdoo } from "@/lib/odoo/formations"
 
 try {
   process.loadEnvFile(".env.local")
@@ -78,6 +86,45 @@ describe("Odoo", () => {
       assert.equal(autorise, true, `L'utilisateur de la clé API ne peut pas faire « ${operation} » sur ${modele}`)
     })
   }
+
+  it.skipIf(!config)("catalogue des formations", async () => {
+    const { formations } = await lireCatalogueOdoo(odoo, config!.url)
+    assert.ok(formations.length > 0, "Aucun produit publié sur la boutique : pas de cartes formations")
+
+    const parPole = new Map<string, number>()
+    for (const f of formations) for (const p of f.poles) parPole.set(p, (parPole.get(p) ?? 0) + 1)
+    console.log(`  ${formations.length} formations publiées`)
+    for (const [pole, nombre] of parPole) console.log(`    ${pole} : ${nombre}`)
+
+    if (!modeSecteurs(formations)) {
+      console.log("  Mode « par pôles » : aucune formation n'est encore rangée sous « Secteurs » dans Odoo.")
+      const connus = new Set([...parPole.keys()].map(normaliserNom))
+      const prevus = new Set([...Object.values(POLES_PAR_SECTEUR).flat(), ...POLES_TRANSVERSAUX])
+      const vides = [...prevus].filter((p) => !connus.has(normaliserNom(p)))
+      if (vides.length) console.log(`  Pôles utilisés sans formation publiée : ${vides.join(", ")}`)
+      return
+    }
+
+    console.log("  Mode « par secteurs » : dklic a rangé les formations par secteur.")
+    const parSecteur = new Map<string, string[]>()
+    for (const f of formations) for (const s of f.secteurs) parSecteur.set(s, [...(parSecteur.get(s) ?? []), f.nom])
+    for (const [secteur, noms] of parSecteur) console.log(`    ${secteur} : ${noms.length}`)
+
+    // Un secteur mal orthographié dans Odoo ne correspondrait à aucune entreprise.
+    const attendus = new Set([...SECTEURS, TOUS_SECTEURS].map(normaliserNom))
+    const inconnus = [...parSecteur.keys()].filter((s) => !attendus.has(normaliserNom(s)))
+    assert.deepEqual(inconnus, [], `Secteurs inconnus dans Odoo (à renommer comme dans lib/formations/secteurs.ts) : ${inconnus.join(", ")}`)
+
+    const sansSecteur = formations.filter((f) => f.secteurs.length === 0)
+    if (sansSecteur.length) {
+      console.log(`  Jamais proposées (aucun secteur, pas « Tous secteurs ») : ${sansSecteur.map((f) => f.nom).join(", ")}`)
+    }
+    const presents = new Set([...parSecteur.keys()].map(normaliserNom))
+    const sansFormation = SECTEURS.filter((s) => !presents.has(normaliserNom(s)))
+    if (sansFormation.length) {
+      console.log(`  Secteurs sans formation ciblée (ils verront « Tous secteurs ») : ${sansFormation.join(", ")}`)
+    }
+  })
 
   it.skipIf(!config)("étiquette « Simulateur OPCO » (facultatif)", async () => {
     const [etiquette] = await odoo<{ id: number }[]>("crm.tag", "search_read", {

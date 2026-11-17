@@ -1,4 +1,4 @@
-import { construireDemande, type TypeDemande } from "@/lib/demande"
+import { construireDemande, type FormationRetenue, type TypeDemande } from "@/lib/demande"
 import type { Taille } from "@/lib/financement/effectif"
 import type { Company, ContactInfo } from "@/lib/schemas/lead-form"
 
@@ -10,6 +10,7 @@ export const SOCIETE: Company = {
   codePostal: "75002",
   ville: "PARIS",
   codeNaf: "10.71C",
+  codeNaf2025: "10.71H",
   effectif: "01",
   idcc: ["3253"], // OPCO EP
 }
@@ -27,13 +28,18 @@ export const DATE = new Date("2026-11-11T14:30:00Z")
 
 export function demandeExemple(
   type: TypeDemande = "simulation",
-  surcharge: { company?: Partial<Company>; contact?: Partial<ContactInfo>; taille?: Taille } = {}
+  surcharge: {
+    company?: Partial<Company>
+    contact?: Partial<ContactInfo>
+    taille?: Taille
+    formations?: FormationRetenue[]
+  } = {}
 ) {
   return construireDemande(
     type,
     { ...SOCIETE, ...surcharge.company },
     { ...CONTACT, ...surcharge.contact },
     surcharge.taille ?? "moins11",
-    DATE
+    { formations: surcharge.formations, date: DATE }
   )
 }

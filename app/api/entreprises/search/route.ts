@@ -32,6 +32,7 @@ function toCompany(result: RawResult): Company | null {
     codePostal: result.siege?.code_postal ?? "",
     ville: result.siege?.libelle_commune ?? "",
     codeNaf: result.siege?.activite_principale ?? "",
+    codeNaf2025: result.siege?.activite_principale_naf25 ?? "",
     effectif: result.tranche_effectif_salarie ?? null,
     // L'IDCC peut être porté par l'entreprise ou seulement par son siège :
     // on prend l'union, la résolution écartera ensuite les valeurs neutres.

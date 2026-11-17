@@ -8,6 +8,8 @@ export const companySchema = z.object({
   codePostal: z.string().max(10),
   ville: z.string().max(150),
   codeNaf: z.string().max(10),
+  /** Code NAF 2025, obligatoire au 1er janvier 2027 ; déjà fourni par l'annuaire. */
+  codeNaf2025: z.string().max(10).default(""),
   effectif: z.string().nullable(),
   /** Conventions collectives déclarées : c'est ce qui détermine l'OPCO. */
   idcc: z.array(z.string().max(10)).max(20).default([]),
@@ -49,6 +51,7 @@ export const rechercheEntreprisesResponseSchema = z.object({
             code_postal: z.string().nullish(),
             libelle_commune: z.string().nullish(),
             activite_principale: z.string().nullish(),
+            activite_principale_naf25: z.string().nullish(),
             liste_idcc: z.array(z.string()).nullish(),
           })
           .nullish(),

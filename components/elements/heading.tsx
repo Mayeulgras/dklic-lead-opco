@@ -9,6 +9,8 @@ const headingVariants = cva("font-semibold", {
       lg: "text-heading leading-tight",
       /** Sous-titre, nom d'entreprise (17 px). */
       md: "text-title leading-snug",
+      /** Titre d'une petite carte, une formation par exemple (15 px). */
+      sm: "text-base leading-snug",
     },
   },
   defaultVariants: { size: "lg" },
@@ -25,7 +27,7 @@ export function Heading({
   as,
   className,
   ...props
-}: React.ComponentProps<"h2"> & { size?: "lg" | "md"; as?: HeadingTag }) {
+}: React.ComponentProps<"h2"> & { size?: "lg" | "md" | "sm"; as?: HeadingTag }) {
   const Tag = as ?? (size === "lg" ? "h2" : "h3")
   return <Tag className={cn(headingVariants({ size }), className)} {...props} />
 }

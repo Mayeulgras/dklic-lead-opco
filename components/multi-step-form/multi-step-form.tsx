@@ -7,6 +7,7 @@ import { StepProgress } from "@/components/elements/step-progress"
 import { StepTransition } from "@/components/elements/step-transition"
 import { demanderRappel, soumettreDemande, type ResultatDemande } from "@/app/actions/lead"
 import { tailleDepuisTranche, type Taille } from "@/lib/financement/effectif"
+import type { Catalogue } from "@/lib/formations/selection"
 import { resoudreOpco } from "@/lib/financement/opco-resolution"
 import type { Company, ContactInfo } from "@/lib/schemas/lead-form"
 import { StepCompanySearch } from "./step-company-search"
@@ -15,7 +16,8 @@ import { StepResult } from "./step-result"
 
 const STEP_TITLES = ["Entreprise", "Coordonnées", "Budget"]
 
-export function MultiStepForm() {
+/** `catalogue` : les formations dklic, ou `null` si Odoo n'a pas répondu (pas de cartes). */
+export function MultiStepForm({ catalogue }: { catalogue: Catalogue | null }) {
   const [activeStep, setActiveStep] = useState(1)
   const [company, setCompany] = useState<Company | null>(null)
   const [taille, setTaille] = useState<Taille | null>(null)
@@ -62,13 +64,13 @@ export function MultiStepForm() {
     }
   }
 
-  const handleRappel = async (): Promise<ResultatDemande> => {
+  const handleRappel = async (formationIds: number[]): Promise<ResultatDemande> => {
     if (!company || !contact || !taille) {
       return { ok: false, error: "Votre demande a expiré, merci de recommencer" }
     }
 
     try {
-      return await demanderRappel(company, contact, taille)
+      return await demanderRappel(company, contact, taille, formationIds)
     } catch {
       return { ok: false, error: "Une erreur est survenue, merci de réessayer dans un instant" }
     }
@@ -101,7 +103,13 @@ export function MultiStepForm() {
         )}
 
         {activeStep === 3 && envoye && company && taille && (
-          <StepResult company={company} opco={opco} taille={taille} onRappel={handleRappel} />
+          <StepResult
+            company={company}
+            opco={opco}
+            taille={taille}
+            catalogue={catalogue}
+            onRappel={handleRappel}
+          />
         )}
       </StepTransition>
     </Stack>

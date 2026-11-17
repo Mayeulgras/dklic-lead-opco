@@ -13,7 +13,7 @@ import "server-only"
 export interface ConfigOdoo {
   /** Adresse de l'instance, sans `/` final (https://dklic-formations.odoo.com). */
   url: string
-  /** Clé API d'un utilisateur Odoo. Elle expire au plus tard au bout de 3 mois. */
+  /** Clé API d'un utilisateur Odoo : persistante, ou avec une date d'expiration. */
   cleApi: string
   /** Base de données, seulement si le serveur en héberge plusieurs. */
   base?: string

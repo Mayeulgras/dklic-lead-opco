@@ -5,45 +5,64 @@ import { useState } from "react"
 import { AmountDisplay } from "@/components/elements/amount-display"
 import type { ResultatDemande } from "@/app/actions/lead"
 import { AnimatedField } from "@/components/elements/animated-field"
+import { CardCarousel } from "@/components/elements/card-carousel"
 import { ErrorAlert } from "@/components/elements/error-alert"
 import { FormActions } from "@/components/elements/form-actions"
+import { FormationCard } from "@/components/elements/formation-card"
 import { OpcoBadge } from "@/components/elements/opco-badge"
 import { SectionHeader } from "@/components/elements/section-header"
 import { Stack } from "@/components/elements/stack"
 import { SuccessMessage } from "@/components/elements/success-message"
 import { Text } from "@/components/elements/text"
+import { TextLink } from "@/components/elements/text-link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { budgetAnnuel, formaterBudget } from "@/lib/financement/budget"
 import { libelleTaille, type Taille } from "@/lib/financement/effectif"
 import { libelleOpco, type OpcoId } from "@/lib/financement/opcos"
+import { choisirFormations, type Catalogue } from "@/lib/formations/selection"
 import { formaterNom } from "@/lib/format"
 import type { Company } from "@/lib/schemas/lead-form"
 
 /**
  * Étape 3 : un seul chiffre, comme chez les concurrents. Le détail se dit au
- * téléphone — l'écran ne sert qu'à donner un ordre de grandeur crédible et à
- * déclencher le rappel.
+ * téléphone — l'écran donne un ordre de grandeur crédible, montre à quoi le
+ * budget peut servir (trois formations dklic choisies pour le secteur), puis
+ * déclenche le rappel, avec les formations cochées.
  */
 export function StepResult({
   company,
   opco,
   taille,
+  catalogue,
   onRappel,
 }: {
   company: Company
   opco: OpcoId | null
   taille: Taille
-  onRappel: () => Promise<ResultatDemande>
+  catalogue: Catalogue | null
+  onRappel: (formationIds: number[]) => Promise<ResultatDemande>
 }) {
   const [rappel, setRappel] = useState<"attente" | "envoi" | "fait">("attente")
   const [erreur, setErreur] = useState<string | null>(null)
+  const [choisies, setChoisies] = useState<number[]>([])
   const budget = budgetAnnuel(opco, taille)
+  const formations = catalogue ? choisirFormations(catalogue.formations, company) : []
+
+  const basculer = (id: number, interesse: boolean) =>
+    setChoisies((actuelles) => (interesse ? [...actuelles, id] : actuelles.filter((c) => c !== id)))
+
+  const libelleRappel =
+    choisies.length === 0
+      ? "Être rappelé par un conseiller"
+      : choisies.length === 1
+        ? "Être rappelé pour cette formation"
+        : `Être rappelé pour ces ${choisies.length} formations`
 
   const demanderRappel = async () => {
     setRappel("envoi")
     setErreur(null)
-    const resultat = await onRappel()
+    const resultat = await onRappel(choisies)
 
     if (resultat.ok) {
       setRappel("fait")
@@ -91,13 +110,39 @@ export function StepResult({
             </Text>
           </AnimatedField>
 
-          {erreur && (
+          {catalogue && formations.length > 0 && (
             <AnimatedField index={3}>
+              <Stack>
+                <SectionHeader
+                  size="md"
+                  title="Des formations pour votre entreprise"
+                  description="Cochez celles qui vous intéressent : le conseiller vous en parlera."
+                />
+                <CardCarousel label="Formations proposées">
+                  {formations.map((formation) => (
+                    <FormationCard
+                      key={formation.id}
+                      formation={formation}
+                      selected={choisies.includes(formation.id)}
+                      onSelectedChange={(interesse) => basculer(formation.id, interesse)}
+                      disabled={rappel !== "attente"}
+                    />
+                  ))}
+                </CardCarousel>
+                <TextLink href={catalogue.lienBoutique} external>
+                  Voir les {catalogue.formations.length} formations dklic
+                </TextLink>
+              </Stack>
+            </AnimatedField>
+          )}
+
+          {erreur && (
+            <AnimatedField index={4}>
               <ErrorAlert>{erreur}</ErrorAlert>
             </AnimatedField>
           )}
 
-          <AnimatedField index={4}>
+          <AnimatedField index={5}>
             {rappel === "fait" ? (
               <SuccessMessage>
                 C&apos;est noté : un conseiller vous rappelle pour affiner ce budget.
@@ -110,7 +155,7 @@ export function StepResult({
                   loading={rappel === "envoi"}
                   onClick={demanderRappel}
                 >
-                  Être rappelé par un conseiller
+                  {libelleRappel}
                 </Button>
               </FormActions>
             )}
